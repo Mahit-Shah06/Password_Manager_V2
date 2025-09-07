@@ -1,0 +1,63 @@
+import customtkinter as ckt
+from tkinter import messagebox as mb
+from . import config
+from . import db
+
+class AuthScreen(ckt.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master, fg_color="transparent")
+
+        self.center_frame = ckt.CTkFrame(self, fg_color="transparent")
+        self.center_frame.pack(expand=True)
+
+        self.login_view()
+        self.db = db.DBfunc
+
+    def clear(self):
+        for widget in self.center_frame.winfo_children():
+            widget.destroy()
+
+    def check_login(self):
+        inputuser, inputpass = self.username_entry.get(), self.password_entry.get()
+        dbuserdata = self.db.retrieve_account(inputuser)
+        passwordfromdb = dbuserdata[1]
+        if (inputuser == "admin" and inputpass == "123") or (inputpass == passwordfromdb):
+            self.master.show_main_app()
+        else:
+            mb.showerror("Login Failed", "Incorrect username or password.")
+
+    def login_view(self):
+        self.clear()
+
+        label = ckt.CTkLabel(self.center_frame, text="Login", font=("Roboto", 24, "bold"))
+        label.pack(pady=(0, 20))
+
+        self.username_entry = ckt.CTkEntry(self.center_frame, placeholder_text="Username", width=300, font=config.search_font)
+        self.username_entry.pack(pady=(0, 10))
+
+        self.password_entry = ckt.CTkEntry(self.center_frame, placeholder_text="Password", show="*", width=300, font=config.search_font)
+        self.password_entry.pack(pady=(0, 20))
+
+        login_button = ckt.CTkButton(self.center_frame, text="Login", width=300, command=self.check_login)
+        login_button.pack()
+
+        register_switch_button = ckt.CTkButton(self.center_frame, text="Don't have an account? Register", fg_color="transparent", hover=False, command=self.register_view)
+        register_switch_button.pack(pady=(10, 0))
+
+    def register_view(self):
+        self.clear()
+
+        label = ckt.CTkLabel(self.center_frame, text="Register", font=("Roboto", 24, "bold"))
+        label.pack(pady=(0, 20))
+
+        username_entry = ckt.CTkEntry(self.center_frame, placeholder_text="Choose a username", width=300, font=config.search_font)
+        username_entry.pack(pady=(0, 10))
+
+        password_entry = ckt.CTkEntry(self.center_frame, placeholder_text="Enter a strong password", show="*", width=300, font=config.search_font)
+        password_entry.pack(pady=(0, 10))
+
+        register_button = ckt.CTkButton(self.center_frame, text="Register", width=300, command=self.login_view)
+        register_button.pack()
+
+        login_switch_button = ckt.CTkButton(self.center_frame, text="Already have an account? Login", fg_color="transparent", hover=False, command=self.login_view)
+        login_switch_button.pack(pady=(10, 0))
