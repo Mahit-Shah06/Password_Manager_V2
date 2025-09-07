@@ -1,5 +1,6 @@
 import sqlite3
 from tkinter import messagebox as mb
+import os
 
 class DBfunc():
     def __init__(self, db_name = "pswmgrv2.db"):
@@ -10,66 +11,75 @@ class DBfunc():
     def initialize_tables(self):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS accounts (
-                upid INTEGER PRIMARY KEY,
+                uuid TEXT PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
-                hased_password TEXT UNIQUE NOT NULL,
-                salt TEXT NOT NULL
+                hashed_password BLOB UNIQUE NOT NULL,
+                salt BLOB NOT NULL
             );
         """)
 
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS passwords (
-                upid INTEGER PRIMARY KEY,
+                uuid TEXT PRIMARY KEY,
                 site TEXT NOT NULL,
                 username_email TEXT NOT NULL,
-                encrypted_password TEXT NOT NULL,
+                encrypted_password BLOB NOT NULL,
                 notes TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (id)
+                FOREIGN KEY (uuid) REFERENCES accounts (uuid)
             );
         """)
-
+        print("DB absolute path, db.py:", os.path.abspath("pswmgrv2.db"))
         self.conn.commit()
         self.conn.close()
 
     def retrieve_account(self, username):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-        self.cursor.execute("SELECT upid, hashed_password FROM accounts WHERE username = ?", (username,))
+        print("Retrieving")
+        self.cursor.execute("SELECT uuid, hashed_password, salt FROM accounts WHERE username = ?", (username,))
         result = self.cursor.fetchone()
         self.conn.close()
         return result
 
-    def enter_account(self, upid, username, hashed_password, salt):
+    def enter_account(self, uuid, username, hashed_password:bytes, salt:bytes):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
+        print("Starting, ")
+        print("DB absolute path:", os.path.abspath("pswmgrv2.db"))
         try:
-            self.cursor.execute("INSERT INTO accounts (upid, username, master_password_hash, salt) VALUES (?, ?)", (upid, username, hashed_password, salt))
+            self.cursor.execute("INSERT INTO accounts (uuid, username, hashed_password, salt) VALUES (?, ?, ?, ?)", (uuid, username, hashed_password, salt))
             self.conn.commit()
-            mb.showinfo(f"Account for '{username}' created successfully.")
-            return self.cursor.lastrowid
-        except sqlite3.IntegrityError:
-            mb.showerror(f"Error: Account already exists for '{username}'.")
-            return None
+            print("Worked")
+            return True, None
+        except Exception as e:
+            return False, e
         finally:
             self.conn.close()
 
-    def add_password(self, upid, website, username_email, encrypted_password, notes=None):
+    def add_password(self, uuid, website, username_email, encrypted_password:bytes, notes=None):
+        self.conn = sqlite3.connect(self.db_name)
+        self.cursor = self.conn.cursor()
+        try:
+            self.cursor.execute(
+            "INSERT INTO passwords (uuid, site, username_email, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)", (uuid, website, username_email, encrypted_password, notes)
+           )
+            self.conn.commit()
+            return True, None
+
+        except Exception as e:
+            return False, e
+        finally:
+            self.conn.close() 
+
+    def retrieve_passwords(self, uuid):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
-        """INSERT INTO passwords (upid, site, username_email, encrypted_password, notes) VALUES (?, ?, ?, ?, ?)""", (upid, website, username_email, encrypted_password, notes)
+            "SELECT site, username_email, encrypted_password, notes FROM passwords WHERE user_uuid = ?",
+            (uuid,)
         )
-        self.conn.commit()
-        self.conn.close()
-        mb.showinfo("Password entry added successfully.")
-
-    def retrieve_password(self, upid):
-        self.conn = sqlite3.connect(self.db_name)
-        self.cursor = self.conn.cursor()
-        self.cursor.execute("SELECT site, username_email, encrypted_password, notes FROM passwords WHERE upid = ?", (upid,))
         entries = self.cursor.fetchall()
         self.conn.close()
-        return entries
+        return entries 
