@@ -30,14 +30,12 @@ class DBfunc():
                 FOREIGN KEY (uuid) REFERENCES accounts (uuid)
             );
         """)
-        print("DB absolute path, db.py:", os.path.abspath("pswmgrv2.db"))
         self.conn.commit()
         self.conn.close()
 
     def retrieve_account(self, username):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-        print("Retrieving")
         self.cursor.execute("SELECT uuid, hashed_password, salt FROM accounts WHERE username = ?", (username,))
         result = self.cursor.fetchone()
         self.conn.close()
@@ -46,12 +44,9 @@ class DBfunc():
     def enter_account(self, uuid, username, hashed_password:bytes, salt:bytes):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
-        print("Starting, ")
-        print("DB absolute path:", os.path.abspath("pswmgrv2.db"))
         try:
             self.cursor.execute("INSERT INTO accounts (uuid, username, hashed_password, salt) VALUES (?, ?, ?, ?)", (uuid, username, hashed_password, salt))
             self.conn.commit()
-            print("Worked")
             return True, None
         except Exception as e:
             return False, e

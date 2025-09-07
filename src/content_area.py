@@ -1,5 +1,7 @@
 import customtkinter as ckt
 from . import config
+from . import db
+from . import encryption_logic
 
 class ContentArea(ckt.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -9,6 +11,8 @@ class ContentArea(ckt.CTkFrame):
 
         self.inner_frame = ckt.CTkFrame(self, fg_color="transparent")
         self.inner_frame.pack(side="left", fill = 'both', expand="True", padx=30, pady=20)
+        self.dbf = db.DBfunc()
+        self.enc = encryption_logic.EncryptionHandler()
 
     def showPasswords(self):
         self.clear()
@@ -32,6 +36,9 @@ class ContentArea(ckt.CTkFrame):
         self.inner_frame.grid_columnconfigure(0, weight=0)
         self.inner_frame.grid_columnconfigure(1, weight=1)
         self.inner_frame.grid_columnconfigure(2, weight=0)
+
+    def Scroller(self):
+        pass
 
     def showSettings(self):
         self.clear()

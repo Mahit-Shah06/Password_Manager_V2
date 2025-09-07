@@ -31,10 +31,14 @@ class AuthScreen(ckt.CTkFrame):
             if self.enc.verify_password(inputpass, dbpass):
                 mb.showinfo("Success", "Successfully logged in")
                 self.master.show_main_app()
+                self.master.uuid = dbuserdata[0]
             else:
                 mb.showerror("Error", "Something went wrong")
         except Exception as e:
                 mb.showerror("Error", e)
+    
+    def get_uuid(uuid):
+        return uuid
 
     def register_user(self):
         inputuser, inputpass = self.username_entry.get(), self.password_entry.get()
@@ -49,9 +53,7 @@ class AuthScreen(ckt.CTkFrame):
             salt = self.enc.gen_salt()
             uuid = self.enc.gen_uuid(inputuser, hashpass, salt)
             result, error = self.dbf.enter_account(uuid, inputuser, hashpass, salt)
-            print(result)
             if result and not error:
-                print(uuid, inputuser, hashpass, salt)
                 mb.showinfo("Succes", "User successfully registered\n Please Log in.")
                 self.login_view()
             else:
