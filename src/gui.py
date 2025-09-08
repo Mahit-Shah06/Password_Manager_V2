@@ -4,7 +4,6 @@ from . import config  # Import config from the same folder
 from .auth_screen import AuthScreen
 from .sidebar import Sidebar
 from .content_area import ContentArea
-from .encryption_logic import EncryptionHandler
 
 class GUI(ckt.CTk):
     def __init__(self):

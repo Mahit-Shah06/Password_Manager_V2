@@ -36,9 +36,6 @@ class AuthScreen(ckt.CTkFrame):
                 mb.showerror("Error", "Something went wrong")
         except Exception as e:
                 mb.showerror("Error", e)
-    
-    def get_uuid(uuid):
-        return uuid
 
     def register_user(self):
         inputuser, inputpass = self.username_entry.get(), self.password_entry.get()
