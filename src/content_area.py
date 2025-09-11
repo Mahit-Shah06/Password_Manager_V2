@@ -2,6 +2,7 @@ import customtkinter as ckt
 from . import config
 from . import db
 from . import encryption_logic
+from . import session_handler
 
 class ContentArea(ckt.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -13,6 +14,9 @@ class ContentArea(ckt.CTkFrame):
         self.inner_frame.pack(side="left", fill = 'both', expand="True", padx=30, pady=20)
         self.dbf = db.DBfunc()
         self.enc = encryption_logic.EncryptionHandler()
+        self.uuid = None
+        self.key = None
+        self.sh = session_handler.SessionHandler()
 
     def showPasswords(self):
         self.clear()
@@ -24,6 +28,8 @@ class ContentArea(ckt.CTkFrame):
 
         self.inner_frame.grid_columnconfigure(1, weight=1)
         self.inner_frame.grid_columnconfigure(2, weight=0)
+
+        self.Scroller(True, self.inner_frame)
 
     def showWallets(self):
         self.clear()
@@ -37,7 +43,44 @@ class ContentArea(ckt.CTkFrame):
         self.inner_frame.grid_columnconfigure(1, weight=1)
         self.inner_frame.grid_columnconfigure(2, weight=0)
 
-    def Scroller(self):
+        self.Scroller(False, self.inner_frame)
+
+    def Scroller(self, type, frame):
+        self.clear()
+        scroll_frame = ckt.CTkScrollableFrame(frame, width=600, height=400)
+        scroll_frame.grid(row=1, column=0, columnspan=3, pady=20, sticky="nsew")
+
+        if type is True:
+            self.uuid, self.key = self.sh.load_session()
+
+            entries = self.dbf.retrieve_passwords(self.uuid)
+            print(entries)
+            for site, username, enc_pass, notes in entries:
+                try:
+                    decrypted_pass = self.enc.decrypt(enc_pass)
+                except Exception:
+                    decrypted_pass = "<decryption failed>"
+
+                inframe = ckt.CTkFrame(scroll_frame, corner_radius=10)
+                inframe.pack(fill="x", pady=5, padx=10)
+
+                label = ckt.CTkLabel(inframe, text=f"{site} \n {username}", anchor="w")
+                label.pack(side="left", padx=10, pady=5)
+
+                pass_var = ckt.StringVar(value="••••••••")
+                pass_label = ckt.CTkLabel(inframe, textvariable=pass_var, width=150, anchor="w")
+                pass_label.pack(side="left", padx=10, pady=5)
+
+                def toggle(var=pass_var, real=decrypted_pass):
+                    if var.get() == "••••••••":
+                        var.set(real)
+                    else:
+                        var.set("••••••••")
+
+                show_chk = ckt.CTkCheckBox(inframe, text="Show", command=toggle)
+                show_chk.pack(side="right", padx=10)
+
+    def add(self, frame):
         pass
 
     def showSettings(self):
@@ -48,15 +91,3 @@ class ContentArea(ckt.CTkFrame):
     def clear(self):
         for widget in self.inner_frame.winfo_children():
             widget.destroy()
-
-# Demo data
-# DEMO_PASSWORDS = [
-#     {"site": "github.com", "username": "you@example.com", "password": "••••••••"},
-#     {"site": "gmail.com",  "username": "you@gmail.com",  "password": "••••••••"},
-#     {"site": "notion.so",  "username": "you@work.com",  "password": "••••••••"},
-# ]
-
-# DEMO_WALLETS = [
-#     {"chain": "Ethereum", "label": "Main Wallet", "seed phrase": "satoshi...orbit satoshi"},
-#     {"chain": "Solana",   "label": "Cold Storage", "seed phrase": "0x4...b8c8f6f0"},
-# ]

@@ -53,7 +53,7 @@ class DBfunc():
         finally:
             self.conn.close()
 
-    def add_password(self, uuid, website, username_email, encrypted_password:bytes, notes=None):
+    def add_password(self, uuid:str, website:str, username_email:str, encrypted_password:bytes, notes=None):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
         try:
@@ -68,11 +68,11 @@ class DBfunc():
         finally:
             self.conn.close() 
 
-    def retrieve_passwords(self, uuid):
+    def retrieve_passwords(self, uuid:str):
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
-            "SELECT site, username_email, encrypted_password, notes FROM passwords WHERE user_uuid = ?",
+            "SELECT site, username_email, encrypted_password, notes FROM passwords WHERE uuid = ?",
             (uuid,)
         )
         entries = self.cursor.fetchall()

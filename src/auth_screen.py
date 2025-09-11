@@ -3,6 +3,7 @@ from tkinter import messagebox as mb
 from . import config
 from . import db
 from . import encryption_logic
+from . import session_handler
 
 class AuthScreen(ckt.CTkFrame):
     def __init__(self, master):
@@ -14,6 +15,7 @@ class AuthScreen(ckt.CTkFrame):
         self.login_view()
         self.dbf = db.DBfunc()
         self.enc = encryption_logic.EncryptionHandler()
+        self.sh = session_handler.SessionHandler()
 
     def clear(self):
         for widget in self.center_frame.winfo_children():
@@ -22,6 +24,7 @@ class AuthScreen(ckt.CTkFrame):
     def login(self):
         inputuser, inputpass = self.username_entry.get(), self.password_entry.get()
         dbuserdata = self.dbf.retrieve_account(inputuser)
+        print(dbuserdata)
 
         if dbuserdata is None:
             mb.showerror("Error", "Input username or password is wrong or does not exist!")
@@ -30,12 +33,17 @@ class AuthScreen(ckt.CTkFrame):
             dbpass = dbuserdata[1]
             if self.enc.verify_password(inputpass, dbpass):
                 mb.showinfo("Success", "Successfully logged in")
+                self.uuid = dbuserdata[0]
+                salt = dbuserdata[2]
+                self.key = self.enc.derive_key(inputpass, salt)
+                self.sh.create_session(self.uuid, self.key)
+
+                self.clear()
                 self.master.show_main_app()
-                self.master.uuid = dbuserdata[0]
             else:
                 mb.showerror("Error", "Something went wrong")
         except Exception as e:
-                mb.showerror("Error", e)
+                mb.showerror("Error", str(e))
 
     def register_user(self):
         inputuser, inputpass = self.username_entry.get(), self.password_entry.get()

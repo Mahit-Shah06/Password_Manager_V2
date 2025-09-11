@@ -1,6 +1,5 @@
-
 import customtkinter as ckt
-from . import config  # Import config from the same folder
+from . import config
 from .auth_screen import AuthScreen
 from .sidebar import Sidebar
 from .content_area import ContentArea
@@ -19,7 +18,6 @@ class GUI(ckt.CTk):
     def start_auth_screen(self):
         if self.current_frame:
             self.current_frame.destroy()
-        
         self.current_frame = AuthScreen(self) 
         self.current_frame.pack(fill="both", expand=True)
 
@@ -32,7 +30,6 @@ class GUI(ckt.CTk):
 
         self.content = ContentArea(self.current_frame)
         self.sidebar = Sidebar(self.current_frame)
-
         self.current_frame.content = self.content
 
         self.sidebar.select_page("passwords", self.current_frame)
