@@ -1,6 +1,5 @@
 import sqlite3
 from tkinter import messagebox as mb
-import os
 
 class DBfunc():
     def __init__(self, db_name = "pswmgrv2.db"):
@@ -13,7 +12,7 @@ class DBfunc():
         self.cursor = self.conn.cursor()
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS accounts (
-                uuid TEXT PRIMARY KEY,
+                uuid TEXT,
                 username TEXT UNIQUE NOT NULL,
                 hashed_password BLOB UNIQUE NOT NULL,
                 salt BLOB NOT NULL
@@ -22,7 +21,7 @@ class DBfunc():
 
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS passwords (
-                uuid TEXT PRIMARY KEY,
+                uuid TEXT,
                 site TEXT NOT NULL,
                 username_email TEXT NOT NULL,
                 encrypted_password BLOB NOT NULL,
